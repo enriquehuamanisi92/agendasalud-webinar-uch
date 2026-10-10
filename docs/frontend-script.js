@@ -1,0 +1,11 @@
+
+let all=[];const $=s=>document.querySelector(s);
+const fmt=s=>new Date(s+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});
+const safe=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+async function loadAll(){const [r,s]=await Promise.all([fetch('/api/citas'),fetch('/api/resumen')]);if(!r.ok||!s.ok)throw Error('No se pudo consultar la API');all=(await r.json()).data;const stats=await s.json();$('#total').textContent=stats.total;$('#confirmed').textContent=stats.confirmadas;$('#pending').textContent=stats.pendientes;$('#specialities').textContent=stats.especialidades;renderTable()}
+function renderTable(){const val=($('#search').value||'').toLowerCase();$('#rows').innerHTML=all.filter(r=>(r.paciente+' '+r.especialidad).toLowerCase().includes(val)).slice(0,8).map(r=>`<tr><td><span class="initial">${safe(r.paciente[0])}</span>${safe(r.paciente)}</td><td>${safe(r.especialidad)}</td><td>${fmt(r.fecha)} · ${r.hora}</td><td><span class="tag ${r.estado==='Confirmada'?'ok':'pending'}">${r.estado}</span></td><td>${r.estado==='Pendiente'?`<button class="link" onclick="confirmCita(${r.id})">Confirmar</button>`:'—'}</td></tr>`).join('')}
+function openModal(){$('#modal').classList.add('open')}function closeModal(){$('#modal').classList.remove('open')}
+async function createCita(ev){ev.preventDefault();const data=Object.fromEntries(new FormData($('#form')));const r=await fetch('/api/citas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.error||'Error al guardar la cita');return;}closeModal();$('#form').reset();$('#search').value=data.paciente;await loadAll()}
+async function confirmCita(id){const r=await fetch('/api/citas/'+id+'/confirmar',{method:'PATCH'});if(!r.ok){alert('No se pudo confirmar la cita');return;}await loadAll()}
+async function init(){try{const r=await fetch('/api/info');const info=await r.json();$('#env-message').innerHTML='● SERVIDOR ACTIVO<br>Node.js · API HTTP<br>'+safe(info.base_de_datos)+'<br>Modo: '+safe(info.modo);await loadAll();}catch(e){console.error(e);$('#env-message').textContent='Sin conexión con el servidor. Actualiza la página.';}}
+init();

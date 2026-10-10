@@ -1,0 +1,17 @@
+{
+  "name": "agendasalud-fullstack-uch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demostrador didactico del webinar Full Stack UCH: Node HTTP, SQLite local y PostgreSQL en la nube",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13.0 <27"
+  },
+  "dependencies": {
+    "pg": "^8.16.0"
+  }
+}
